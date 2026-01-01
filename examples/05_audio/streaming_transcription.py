@@ -22,6 +22,10 @@ from utils.client import print_error
 
 console = Console()
 
+# HTTP request timeouts (connect, read) in seconds
+HTTP_TIMEOUT = 60  # For batch requests
+HTTP_TIMEOUT_STREAMING = (30, 300)  # Longer read timeout for streaming audio
+
 
 def run(audio_path: str, language: str = None):
     """
@@ -62,10 +66,6 @@ def run(audio_path: str, language: str = None):
             "Authorization": f"Bearer {API_KEY}"
         }
 
-        files = {
-            "file": (audio_file.name, open(audio_path, "rb"), "audio/mpeg")
-        }
-
         data = {
             "model": Models.AUDIO_ASR,
             "stream": "true"  # Enable streaming
@@ -74,40 +74,47 @@ def run(audio_path: str, language: str = None):
         if language:
             data["language"] = language
 
-        # Stream the response
-        response = requests.post(url, headers=headers, files=files, data=data, stream=True)
-        response.raise_for_status()
+        # Use context manager to properly close file handle
+        with open(audio_path, "rb") as f:
+            files = {"file": (audio_file.name, f, "audio/mpeg")}
 
-        full_text = ""
-        segments = []
+            # Stream the response with timeout
+            response = requests.post(
+                url, headers=headers, files=files, data=data,
+                stream=True, timeout=HTTP_TIMEOUT_STREAMING
+            )
+            response.raise_for_status()
 
-        console.print("[bold]Transcription:[/bold]")
+            full_text = ""
+            segments = []
 
-        with Live(Text(""), console=console, refresh_per_second=10) as live:
-            for line in response.iter_lines():
-                if line:
-                    line_str = line.decode("utf-8")
+            console.print("[bold]Transcription:[/bold]")
 
-                    # Handle SSE format
-                    if line_str.startswith("data:"):
-                        data_str = line_str[5:].strip()
+            with Live(Text(""), console=console, refresh_per_second=10) as live:
+                for line in response.iter_lines():
+                    if line:
+                        line_str = line.decode("utf-8")
 
-                        if data_str == "[DONE]":
-                            break
+                        # Handle SSE format
+                        if line_str.startswith("data:"):
+                            data_str = line_str[5:].strip()
 
-                        try:
-                            chunk = json.loads(data_str)
+                            if data_str == "[DONE]":
+                                break
 
-                            if "text" in chunk:
-                                full_text = chunk["text"]
-                                live.update(Text(full_text, style="green"))
+                            try:
+                                chunk = json.loads(data_str)
 
-                            if "segment" in chunk:
-                                segments.append(chunk["segment"])
+                                if "text" in chunk:
+                                    full_text = chunk["text"]
+                                    live.update(Text(full_text, style="green"))
 
-                        except json.JSONDecodeError:
-                            # Not JSON, might be partial text
-                            pass
+                                if "segment" in chunk:
+                                    segments.append(chunk["segment"])
+
+                            except json.JSONDecodeError:
+                                # Not JSON, might be partial text
+                                pass
 
         console.print()  # New line after live display
 
@@ -126,6 +133,9 @@ def run(audio_path: str, language: str = None):
             "segments": segments
         }
 
+    except requests.exceptions.Timeout:
+        console.print("[red]Timeout Error: Request timed out[/red]")
+        return None
     except requests.exceptions.HTTPError as e:
         console.print(f"[red]HTTP Error: {e.response.status_code}[/red]")
         console.print(f"[dim]{e.response.text}[/dim]")
@@ -163,10 +173,14 @@ def compare_streaming_vs_batch(audio_path: str):
 
     url = ENDPOINTS["audio_transcription"]
     headers = {"Authorization": f"Bearer {API_KEY}"}
-    files = {"file": (audio_file.name, open(audio_path, "rb"), "audio/mpeg")}
-    data = {"model": Models.AUDIO_ASR, "stream": "false"}
 
-    response = requests.post(url, headers=headers, files=files, data=data)
+    # Use context manager to properly close file handle
+    with open(audio_path, "rb") as f:
+        files = {"file": (audio_file.name, f, "audio/mpeg")}
+        data = {"model": Models.AUDIO_ASR, "stream": "false"}
+
+        response = requests.post(url, headers=headers, files=files, data=data, timeout=HTTP_TIMEOUT)
+
     batch_time = time.time() - start_batch
 
     if response.ok:
