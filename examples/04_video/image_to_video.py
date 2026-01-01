@@ -95,12 +95,16 @@ def run(
                     cover_url = result.video_result[0].cover_image_url if result.video_result else None
 
                     console.print(Panel(
-                        f"[green]Video generated successfully![/green]\n\n"
-                        f"[bold]Video URL:[/bold]\n{video_url}\n\n"
-                        f"[bold]Cover Image:[/bold]\n{cover_url}",
+                        "[green]Video generated successfully![/green]",
                         title="Result",
                         border_style="green"
                     ))
+
+                    # Print URLs outside panel to avoid line wrapping (makes them clickable)
+                    console.print(f"\n[bold]Video URL:[/bold]")
+                    console.print(video_url, soft_wrap=True, overflow="ignore")
+                    console.print(f"\n[bold]Cover Image:[/bold]")
+                    console.print(cover_url, soft_wrap=True, overflow="ignore")
 
                     return {
                         "id": video_id,

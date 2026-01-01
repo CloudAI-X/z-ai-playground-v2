@@ -53,11 +53,14 @@ def run(prompt: str = None, size: str = "1024x1024"):
         if response.data:
             image_url = response.data[0].url
             console.print(Panel(
-                f"[green]Image generated successfully![/green]\n\n"
-                f"[bold]URL:[/bold] {image_url}",
+                "[green]Image generated successfully![/green]",
                 title="Result",
                 border_style="green"
             ))
+
+            # Print URL outside panel to avoid line wrapping (makes it clickable)
+            console.print(f"\n[bold]URL:[/bold]")
+            console.print(image_url, soft_wrap=True, overflow="ignore")
 
             console.print(
                 "\n[dim]Note: The URL is temporary. Download the image to save it.[/dim]"
