@@ -20,8 +20,8 @@ from config import API_KEY, BASE_URL, ENDPOINTS, Models, Defaults
 console = Console()
 
 # HTTP request timeouts (connect, read) in seconds
-HTTP_TIMEOUT = 30  # For non-streaming requests
-HTTP_TIMEOUT_STREAMING = (10, 120)  # (connect, read) for streaming requests
+HTTP_TIMEOUT = 60  # For non-streaming requests
+HTTP_TIMEOUT_STREAMING = (20, 240)  # (connect, read) for streaming requests
 
 
 def run(prompt: str = None, stream: bool = False):
