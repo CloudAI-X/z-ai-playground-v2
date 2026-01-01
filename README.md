@@ -53,6 +53,52 @@ http_examples/       # Direct HTTP API examples
 utils/               # Shared client utilities
 ```
 
+## Using GLM-4.7 with Claude Code
+
+This project was built using **GLM-4.7 inside Claude Code** via the Z.AI-GLM-4.7-Coding Plan. Here's how to set it up:
+
+### Setup Instructions
+
+1. **Subscribe to Z.AI-GLM-4.7-Coding Plan** at [z.ai/subscribe](https://z.ai/subscribe)
+
+2. **Configure Claude Code** - Add to your `~/.claude/settings.json`:
+
+```json
+{
+  "primaryApiKey": "YOUR_Z_AI_API_KEY",
+  "apiKeyHelper": "",
+  "primaryApiKeySource": "Settings file",
+  "apiProvider": "openai",
+  "apiUrl": "https://api.z.ai/api/coding/paas/v4/",
+  "model": "glm-4.7",
+  "maxTokens": 16000,
+  "temperature": 1.0
+}
+```
+
+3. **Verify Configuration**:
+```bash
+claude config list
+```
+
+### Key Configuration Details
+
+| Setting | Value | Description |
+|---------|-------|-------------|
+| `apiProvider` | `"openai"` | Z.AI uses OpenAI-compatible API |
+| `apiUrl` | `https://api.z.ai/api/coding/paas/v4/` | Z.AI Coding Plan endpoint |
+| `model` | `"glm-4.7"` | GLM-4.7 model for advanced reasoning |
+| `temperature` | `1.0` | GLM-4.7 recommended default |
+| `maxTokens` | `16000` | Adjust as needed (max 128K) |
+
+### Why Z.AI-GLM-4.7-Coding Plan?
+
+- **Cost-effective**: Best value for AI coding assistance
+- **128K output tokens**: Handle large codebases
+- **200K context window**: Understand complex projects
+- **Deep reasoning**: `thinking` mode for complex problems
+- **OpenAI-compatible**: Works with Claude Code seamlessly
+
 ## Credits
 
 This project is powered by **[Z.AI-GLM-4.7-Coding Plan](https://z.ai/subscribe)** - the most cost-effective way to access GLM-4.7's advanced coding capabilities.
