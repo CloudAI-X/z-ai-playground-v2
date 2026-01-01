@@ -19,6 +19,9 @@ from config import API_KEY, ENDPOINTS, Models, TEST_PROMPTS
 
 console = Console()
 
+# HTTP request timeouts in seconds
+HTTP_TIMEOUT = 60  # For non-streaming requests
+
 
 def run(prompt: str = None, size: str = "1024x1024"):
     """
@@ -62,7 +65,7 @@ def run(prompt: str = None, size: str = "1024x1024"):
     try:
         console.print("[dim]Sending request...[/dim]\n")
 
-        response = requests.post(url, headers=headers, json=payload)
+        response = requests.post(url, headers=headers, json=payload, timeout=HTTP_TIMEOUT)
         response.raise_for_status()
 
         result = response.json()
@@ -88,6 +91,10 @@ def run(prompt: str = None, size: str = "1024x1024"):
     except requests.exceptions.HTTPError as e:
         console.print(f"[red]HTTP Error: {e.response.status_code}[/red]")
         console.print(f"[dim]{e.response.text}[/dim]")
+        return None
+    except requests.exceptions.Timeout as e:
+        console.print(f"[red]Timeout Error: Request timed out[/red]")
+        console.print(f"[dim]{e}[/dim]")
         return None
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
@@ -122,7 +129,7 @@ def demo_various_sizes():
         }
 
         try:
-            response = requests.post(url, headers=headers, json=payload)
+            response = requests.post(url, headers=headers, json=payload, timeout=HTTP_TIMEOUT)
             response.raise_for_status()
 
             result = response.json()
@@ -133,6 +140,8 @@ def demo_various_sizes():
             else:
                 console.print(f"  [yellow]No image in response[/yellow]")
 
+        except requests.exceptions.Timeout as e:
+            console.print(f"  [red]Timeout Error: {e}[/red]")
         except Exception as e:
             console.print(f"  [red]Error: {e}[/red]")
 

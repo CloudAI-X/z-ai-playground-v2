@@ -22,6 +22,9 @@ from config import API_KEY, ENDPOINTS, Models, TEST_PROMPTS
 
 console = Console()
 
+# HTTP request timeouts in seconds
+HTTP_TIMEOUT = 60  # For non-streaming requests
+
 
 def run(
     prompt: str = None,
@@ -78,7 +81,7 @@ def run(
     try:
         console.print("[dim]Submitting video generation request...[/dim]\n")
 
-        response = requests.post(url, headers=headers, json=payload)
+        response = requests.post(url, headers=headers, json=payload, timeout=HTTP_TIMEOUT)
         response.raise_for_status()
 
         result = response.json()
@@ -106,7 +109,7 @@ def run(
 
             elapsed = 0
             while elapsed < max_wait:
-                status_response = requests.get(status_url, headers=headers)
+                status_response = requests.get(status_url, headers=headers, timeout=HTTP_TIMEOUT)
                 status_response.raise_for_status()
 
                 status_result = status_response.json()
@@ -153,6 +156,10 @@ def run(
         console.print(f"[red]HTTP Error: {e.response.status_code}[/red]")
         console.print(f"[dim]{e.response.text}[/dim]")
         return None
+    except requests.exceptions.Timeout as e:
+        console.print(f"[red]Timeout Error: Request timed out[/red]")
+        console.print(f"[dim]{e}[/dim]")
+        return None
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
         return None
@@ -179,7 +186,7 @@ def check_status(video_id: str):
     }
 
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=HTTP_TIMEOUT)
         response.raise_for_status()
 
         result = response.json()
@@ -198,6 +205,10 @@ def check_status(video_id: str):
 
         return result
 
+    except requests.exceptions.Timeout as e:
+        console.print(f"[red]Timeout Error: Request timed out[/red]")
+        console.print(f"[dim]{e}[/dim]")
+        return None
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
         return None

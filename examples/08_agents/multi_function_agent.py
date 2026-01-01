@@ -10,6 +10,8 @@ Demonstrates an autonomous agent that combines multiple tools:
 import sys
 import json
 import math
+import ast
+import operator
 from pathlib import Path
 from datetime import datetime
 
@@ -28,25 +30,92 @@ console = Console()
 
 
 # =============================================================================
+# Safe Expression Evaluator using AST
+# =============================================================================
+
+SAFE_OPERATORS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.Pow: operator.pow,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
+    ast.Mod: operator.mod,
+}
+
+# Safe math functions that can be called
+SAFE_FUNCTIONS = {
+    "sin": math.sin, "cos": math.cos, "tan": math.tan,
+    "asin": math.asin, "acos": math.acos, "atan": math.atan,
+    "sqrt": math.sqrt, "log": math.log, "log10": math.log10,
+    "exp": math.exp, "pow": pow, "abs": abs,
+    "floor": math.floor, "ceil": math.ceil,
+}
+
+# Safe constants
+SAFE_CONSTANTS = {
+    "pi": math.pi, "e": math.e,
+}
+
+
+def safe_eval_node(node):
+    """Recursively evaluate an AST node safely."""
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, (int, float)):
+            return node.value
+        raise ValueError(f"Unsupported constant type: {type(node.value)}")
+    elif isinstance(node, ast.Name):
+        # Handle named constants like pi, e
+        if node.id in SAFE_CONSTANTS:
+            return SAFE_CONSTANTS[node.id]
+        raise ValueError(f"Unknown variable: {node.id}")
+    elif isinstance(node, ast.BinOp):
+        op_type = type(node.op)
+        if op_type not in SAFE_OPERATORS:
+            raise ValueError(f"Unsupported operator: {op_type.__name__}")
+        left = safe_eval_node(node.left)
+        right = safe_eval_node(node.right)
+        return SAFE_OPERATORS[op_type](left, right)
+    elif isinstance(node, ast.UnaryOp):
+        op_type = type(node.op)
+        if op_type not in SAFE_OPERATORS:
+            raise ValueError(f"Unsupported operator: {op_type.__name__}")
+        operand = safe_eval_node(node.operand)
+        return SAFE_OPERATORS[op_type](operand)
+    elif isinstance(node, ast.Call):
+        # Handle function calls like sqrt(16), sin(0.5)
+        if isinstance(node.func, ast.Name):
+            func_name = node.func.id
+            if func_name not in SAFE_FUNCTIONS:
+                raise ValueError(f"Unsupported function: {func_name}")
+            args = [safe_eval_node(arg) for arg in node.args]
+            return SAFE_FUNCTIONS[func_name](*args)
+        raise ValueError(f"Unsupported call type: {type(node.func).__name__}")
+    elif isinstance(node, ast.Expression):
+        return safe_eval_node(node.body)
+    else:
+        raise ValueError(f"Unsupported expression type: {type(node).__name__}")
+
+
+# =============================================================================
 # Tool Implementations
 # =============================================================================
 
 def calculate(expression: str) -> dict:
-    """Evaluate mathematical expressions safely."""
+    """Evaluate mathematical expressions safely using AST parsing."""
     try:
-        # Define allowed functions
-        allowed_names = {
-            "sin": math.sin, "cos": math.cos, "tan": math.tan,
-            "sqrt": math.sqrt, "log": math.log, "log10": math.log10,
-            "exp": math.exp, "pow": pow, "abs": abs,
-            "pi": math.pi, "e": math.e
-        }
-
-        # Evaluate with restricted namespace
-        result = eval(expression, {"__builtins__": {}}, allowed_names)
+        tree = ast.parse(expression, mode='eval')
+        result = safe_eval_node(tree)
         return {"expression": expression, "result": result}
-    except Exception as e:
+    except SyntaxError as e:
+        return {"error": f"Invalid expression syntax: {e}"}
+    except ValueError as e:
         return {"error": str(e)}
+    except ZeroDivisionError:
+        return {"error": "Division by zero"}
+    except Exception as e:
+        return {"error": f"Calculation failed: {e}"}
 
 
 def get_current_datetime(timezone: str = "local") -> dict:
@@ -329,7 +398,19 @@ def run(query: str = None, max_iterations: int = 5):
                 # Execute each tool call
                 for tool_call in assistant_message.tool_calls:
                     func_name = tool_call.function.name
-                    func_args = json.loads(tool_call.function.arguments)
+
+                    try:
+                        func_args = json.loads(tool_call.function.arguments)
+                    except json.JSONDecodeError as e:
+                        console.print(f"\n  [red]→ {func_name}[/red]")
+                        console.print(f"    [red]JSON parse error: {e}[/red]")
+                        error_result = json.dumps({"error": f"Invalid JSON arguments: {e}"})
+                        messages.append({
+                            "role": "tool",
+                            "tool_call_id": tool_call.id,
+                            "content": error_result
+                        })
+                        continue
 
                     console.print(f"\n  [cyan]→ {func_name}[/cyan]")
                     console.print(f"    Args: {json.dumps(func_args)}")

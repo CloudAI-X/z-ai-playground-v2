@@ -8,6 +8,8 @@ Demonstrates GLM-4.7's advanced reasoning capabilities:
 
 import sys
 import json
+import ast
+import operator
 from pathlib import Path
 
 # Add project root to path
@@ -21,6 +23,53 @@ from config import Models
 from utils.client import get_client, print_error
 
 console = Console()
+
+
+# Safe expression evaluator using AST
+SAFE_OPERATORS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.Pow: operator.pow,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
+    ast.Mod: operator.mod,
+}
+
+
+def safe_eval_node(node):
+    """Recursively evaluate an AST node safely."""
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, (int, float)):
+            return node.value
+        raise ValueError(f"Unsupported constant type: {type(node.value)}")
+    elif isinstance(node, ast.BinOp):
+        op_type = type(node.op)
+        if op_type not in SAFE_OPERATORS:
+            raise ValueError(f"Unsupported operator: {op_type.__name__}")
+        left = safe_eval_node(node.left)
+        right = safe_eval_node(node.right)
+        return SAFE_OPERATORS[op_type](left, right)
+    elif isinstance(node, ast.UnaryOp):
+        op_type = type(node.op)
+        if op_type not in SAFE_OPERATORS:
+            raise ValueError(f"Unsupported operator: {op_type.__name__}")
+        operand = safe_eval_node(node.operand)
+        return SAFE_OPERATORS[op_type](operand)
+    elif isinstance(node, ast.Expression):
+        return safe_eval_node(node.body)
+    else:
+        raise ValueError(f"Unsupported expression type: {type(node).__name__}")
+
+
+def safe_calculate(expression: str):
+    """Safely evaluate a mathematical expression using AST parsing."""
+    try:
+        tree = ast.parse(expression, mode='eval')
+        return safe_eval_node(tree)
+    except (SyntaxError, ValueError, ZeroDivisionError) as e:
+        raise ValueError(f"Invalid expression: {e}")
 
 
 def demo_basic_thinking():
@@ -154,12 +203,16 @@ def demo_interleaved_thinking():
         # Simulate tool execution
         for tc in tool_calls:
             if tc["function"]["name"] == "calculate":
-                args = json.loads(tc["function"]["arguments"])
+                try:
+                    args = json.loads(tc["function"]["arguments"])
+                except json.JSONDecodeError as e:
+                    console.print(f"[red]JSON parse error: {e}[/red]")
+                    continue
                 expr = args.get("expression", "")
                 try:
-                    result = eval(expr)  # Simple eval for demo
+                    result = safe_calculate(expr)
                     console.print(f"[green]Calculated: {expr} = {result}[/green]")
-                except Exception as e:
+                except ValueError as e:
                     console.print(f"[red]Calculation error: {e}[/red]")
 
     if content:
