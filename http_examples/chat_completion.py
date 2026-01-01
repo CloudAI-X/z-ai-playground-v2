@@ -19,6 +19,10 @@ from config import API_KEY, BASE_URL, ENDPOINTS, Models, Defaults
 
 console = Console()
 
+# HTTP request timeouts (connect, read) in seconds
+HTTP_TIMEOUT = 30  # For non-streaming requests
+HTTP_TIMEOUT_STREAMING = (10, 120)  # (connect, read) for streaming requests
+
 
 def run(prompt: str = None, stream: bool = False):
     """
@@ -68,7 +72,7 @@ def run(prompt: str = None, stream: bool = False):
 
         if stream:
             # Streaming request
-            response = requests.post(url, headers=headers, json=payload, stream=True)
+            response = requests.post(url, headers=headers, json=payload, stream=True, timeout=HTTP_TIMEOUT_STREAMING)
             response.raise_for_status()
 
             console.print("[bold]Streaming Response:[/bold]")
@@ -108,7 +112,7 @@ def run(prompt: str = None, stream: bool = False):
 
         else:
             # Non-streaming request
-            response = requests.post(url, headers=headers, json=payload)
+            response = requests.post(url, headers=headers, json=payload, timeout=HTTP_TIMEOUT)
             response.raise_for_status()
 
             result = response.json()
@@ -129,8 +133,12 @@ def run(prompt: str = None, stream: bool = False):
         console.print(f"[red]HTTP Error: {e.response.status_code}[/red]")
         console.print(f"[dim]{e.response.text}[/dim]")
         return None
+    except requests.exceptions.Timeout as e:
+        console.print(f"[red]Timeout Error: Request timed out[/red]")
+        console.print(f"[dim]{e}[/dim]")
+        return None
     except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
+        console.print(f"[red]Error ({type(e).__name__}): {e}[/red]")
         return None
 
 
@@ -166,7 +174,7 @@ def demo_with_thinking():
         }
 
         try:
-            response = requests.post(url, headers=headers, json=payload)
+            response = requests.post(url, headers=headers, json=payload, timeout=HTTP_TIMEOUT)
             response.raise_for_status()
 
             result = response.json()
@@ -181,7 +189,7 @@ def demo_with_thinking():
                     console.print(f"  Reasoning: {reasoning[:100]}...")
 
         except Exception as e:
-            console.print(f"  [red]Error: {e}[/red]")
+            console.print(f"  [red]Error ({type(e).__name__}): {e}[/red]")
 
 
 def demo_with_tools():
@@ -225,7 +233,7 @@ def demo_with_tools():
     console.print(syntax)
 
     try:
-        response = requests.post(url, headers=headers, json=payload)
+        response = requests.post(url, headers=headers, json=payload, timeout=HTTP_TIMEOUT)
         response.raise_for_status()
 
         result = response.json()
@@ -244,7 +252,7 @@ def demo_with_tools():
                     console.print(f"  Arguments: {tc['function']['arguments']}")
 
     except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
+        console.print(f"[red]Error ({type(e).__name__}): {e}[/red]")
 
 
 def demo_streaming_tool_calls():
@@ -291,7 +299,7 @@ def demo_streaming_tool_calls():
     console.print(syntax)
 
     try:
-        response = requests.post(url, headers=headers, json=payload, stream=True)
+        response = requests.post(url, headers=headers, json=payload, stream=True, timeout=HTTP_TIMEOUT_STREAMING)
         response.raise_for_status()
 
         console.print("\n[bold]Streaming tool arguments:[/bold]")
@@ -341,7 +349,7 @@ def demo_streaming_tool_calls():
         return tool_calls
 
     except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
+        console.print(f"[red]Error ({type(e).__name__}): {e}[/red]")
         return None
 
 

@@ -4,21 +4,24 @@ Provides reusable client initialization with proper error handling.
 """
 
 import sys
+import threading
+from pathlib import Path
 from typing import Optional
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.markdown import Markdown
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(__file__).rsplit("/", 2)[0])
+# Add parent directory to path for imports (cross-platform)
+sys.path.insert(0, str(Path(__file__).parents[1]))
 
 from config import API_KEY, BASE_URL, Models, Defaults
 
 console = Console()
 
-# Lazy import to avoid circular dependency
+# Thread-safe singleton pattern
 _client = None
+_client_lock = threading.Lock()
 
 
 class ZaiClientWrapper:
@@ -64,7 +67,7 @@ class ZaiClientWrapper:
         thinking: Optional[dict] = None,
         tools: Optional[list] = None,
         tool_stream: bool = False,
-        temperature: Optional[float] = None,
+        temperature: float = Defaults.TEMPERATURE,
         max_tokens: Optional[int] = None,
         **kwargs,
     ):
@@ -78,7 +81,7 @@ class ZaiClientWrapper:
             thinking: Thinking mode config (e.g., {"type": "enabled"})
             tools: List of tool definitions for function calling
             tool_stream: Enable streaming tool call arguments (requires stream=True)
-            temperature: Sampling temperature (0.0-2.0). Do NOT use with top_p.
+            temperature: Sampling temperature (0.0-2.0, default: 1.0). Do NOT use with top_p.
             max_tokens: Maximum output tokens (up to 128K for GLM-4.7)
             **kwargs: Additional parameters passed to the API
 
@@ -90,11 +93,8 @@ class ZaiClientWrapper:
             "model": model,
             "messages": messages,
             "stream": stream,
+            "temperature": temperature,  # GLM-4.7 default: 1.0
         }
-
-        # Apply sampling parameters
-        if temperature is not None:
-            params["temperature"] = temperature
 
         if max_tokens is not None:
             params["max_tokens"] = max_tokens
@@ -273,7 +273,7 @@ def get_client(
     """
     Get a configured ZaiClient wrapper instance.
 
-    Uses singleton pattern for efficiency unless custom params are provided.
+    Uses thread-safe singleton pattern for efficiency unless custom params are provided.
 
     Args:
         api_key: Optional custom API key
@@ -284,11 +284,12 @@ def get_client(
     """
     global _client
 
-    # Return cached client if using defaults
+    # Return cached client if using defaults (thread-safe)
     if api_key is None and base_url is None:
-        if _client is None:
-            _client = ZaiClientWrapper()
-        return _client
+        with _client_lock:
+            if _client is None:
+                _client = ZaiClientWrapper()
+            return _client
 
     # Create new client for custom params
     return ZaiClientWrapper(api_key=api_key, base_url=base_url)

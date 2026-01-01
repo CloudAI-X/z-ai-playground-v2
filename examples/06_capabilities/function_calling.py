@@ -6,6 +6,8 @@ Demonstrates GLM-4.7's ability to call functions and use tools.
 import sys
 import json
 import re
+import ast
+import operator
 from pathlib import Path
 from datetime import datetime
 
@@ -92,17 +94,56 @@ def get_current_time(timezone: str = "UTC") -> dict:
 
 
 def calculate(expression: str) -> dict:
-    """Evaluate a mathematical expression."""
-    try:
-        # Safe evaluation (only basic math)
-        allowed_chars = set("0123456789+-*/().  ")
-        if not all(c in allowed_chars for c in expression):
-            return {"error": "Invalid characters in expression"}
+    """Evaluate a mathematical expression safely using AST parsing."""
+    # Supported operators for safe evaluation
+    SAFE_OPERATORS = {
+        ast.Add: operator.add,
+        ast.Sub: operator.sub,
+        ast.Mult: operator.mul,
+        ast.Div: operator.truediv,
+        ast.Pow: operator.pow,
+        ast.USub: operator.neg,
+        ast.UAdd: operator.pos,
+        ast.Mod: operator.mod,
+    }
 
-        result = eval(expression)
+    def safe_eval_node(node):
+        """Recursively evaluate an AST node safely."""
+        if isinstance(node, ast.Constant):
+            if isinstance(node.value, (int, float)):
+                return node.value
+            raise ValueError(f"Unsupported constant type: {type(node.value)}")
+        elif isinstance(node, ast.BinOp):
+            op_type = type(node.op)
+            if op_type not in SAFE_OPERATORS:
+                raise ValueError(f"Unsupported operator: {op_type.__name__}")
+            left = safe_eval_node(node.left)
+            right = safe_eval_node(node.right)
+            return SAFE_OPERATORS[op_type](left, right)
+        elif isinstance(node, ast.UnaryOp):
+            op_type = type(node.op)
+            if op_type not in SAFE_OPERATORS:
+                raise ValueError(f"Unsupported operator: {op_type.__name__}")
+            operand = safe_eval_node(node.operand)
+            return SAFE_OPERATORS[op_type](operand)
+        elif isinstance(node, ast.Expression):
+            return safe_eval_node(node.body)
+        else:
+            raise ValueError(f"Unsupported expression type: {type(node).__name__}")
+
+    try:
+        # Parse expression into AST
+        tree = ast.parse(expression, mode='eval')
+        result = safe_eval_node(tree)
         return {"expression": expression, "result": result}
-    except Exception as e:
+    except SyntaxError as e:
+        return {"error": f"Invalid expression syntax: {e}"}
+    except ValueError as e:
         return {"error": str(e)}
+    except ZeroDivisionError:
+        return {"error": "Division by zero"}
+    except Exception as e:
+        return {"error": f"Calculation failed: {e}"}
 
 
 # Tool definitions for the API
@@ -250,7 +291,19 @@ def run(user_query: str = None):
             # Execute each function call
             for tool_call in assistant_message.tool_calls:
                 func_name = tool_call.function.name
-                func_args = json.loads(tool_call.function.arguments)
+
+                try:
+                    func_args = json.loads(tool_call.function.arguments)
+                except json.JSONDecodeError as e:
+                    console.print(f"  [red]→ {func_name}[/red]")
+                    console.print(f"    [red]JSON parse error: {e}[/red]")
+                    result = json.dumps({"error": f"Invalid JSON arguments: {e}"})
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": result
+                    })
+                    continue
 
                 console.print(f"  [cyan]→ {func_name}[/cyan]")
                 console.print(f"    Arguments: {func_args}")
