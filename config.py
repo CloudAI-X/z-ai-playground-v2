@@ -4,6 +4,9 @@ Centralized configuration for all API settings and model constants.
 """
 
 import os
+import base64
+import functools
+from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -60,15 +63,76 @@ class Defaults:
     TOOL_STREAM = True       # Enable streaming tool call parameters
 
 
+# Project root directory
+PROJECT_ROOT = Path(__file__).parent
+
+
+def load_image_as_data_url(image_path: str | Path) -> str:
+    """Convert a local image file to a base64 data URL."""
+    path = Path(image_path)
+    if not path.is_absolute():
+        path = PROJECT_ROOT / path
+
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Sample image not found: {path}\n"
+            f"Run 'python generate_samples.py' to generate sample images."
+        )
+
+    suffix = path.suffix.lower()
+    mime_types = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".gif": "image/gif",
+        ".webp": "image/webp",
+    }
+    mime_type = mime_types.get(suffix, "image/jpeg")
+
+    with open(path, "rb") as f:
+        data = base64.b64encode(f.read()).decode("utf-8")
+
+    return f"data:{mime_type};base64,{data}"
+
+
+# Local sample files
+SAMPLE_IMAGE_PATHS = {
+    "understanding": PROJECT_ROOT / "images" / "image_understanding.jpg",
+    "multi_1": PROJECT_ROOT / "images" / "multi_image_1.jpg",
+    "multi_2": PROJECT_ROOT / "images" / "multi_image_2.jpg",
+    "detection": PROJECT_ROOT / "images" / "object_detection.jpg",
+}
+
+
+def get_sample_images() -> list[str]:
+    """Get sample images as data URLs (for API usage)."""
+    return [
+        load_image_as_data_url(SAMPLE_IMAGE_PATHS["understanding"]),
+        load_image_as_data_url(SAMPLE_IMAGE_PATHS["detection"]),
+    ]
+
+
+def get_multi_images() -> list[str]:
+    """Get multi-image comparison samples as data URLs."""
+    return [
+        load_image_as_data_url(SAMPLE_IMAGE_PATHS["multi_1"]),
+        load_image_as_data_url(SAMPLE_IMAGE_PATHS["multi_2"]),
+    ]
+
+
 # Sample Data for Runnable Examples
+# Note: These are now local file paths. Use get_sample_images() to get base64 data URLs
+# for API calls. These paths are kept for reference/debugging purposes.
 SAMPLE_IMAGES = [
-    "https://aigc-files.bigmodel.cn/api/cogview/20250723213827da171a419b9b4906_0.png",
-    "https://cloudcovert-1305175928.cos.ap-guangzhou.myqcloud.com/%E5%9B%BE%E7%89%87grounding.PNG",
+    str(SAMPLE_IMAGE_PATHS["understanding"]),
+    str(SAMPLE_IMAGE_PATHS["detection"]),
 ]
 
+# Sample image URLs for video generation (start/end frame)
+# Note: Video generation requires HTTP URLs, not local files or base64
 SAMPLE_VIDEO_FRAMES = {
-    "first": "https://gd-hbimg.huaban.com/ccee58d77afe8f5e17a572246b1994f7e027657fe9e6-qD66In_fw1200webp",
-    "last": "https://gd-hbimg.huaban.com/cc2601d568a72d18d90b2cc7f1065b16b2d693f7fa3f7-hDAwNq_fw1200webp",
+    "first": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&q=80",
+    "last": "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=1920&q=80",
 }
 
 TEST_PROMPTS = {
