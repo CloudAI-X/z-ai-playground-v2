@@ -10,6 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parents[2]))
 
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 from rich.live import Live
 from rich.markdown import Markdown
@@ -70,12 +71,12 @@ def run(custom_prompt: str = None, show_reasoning: bool = True):
                 if hasattr(delta, "reasoning_content") and delta.reasoning_content:
                     full_reasoning += delta.reasoning_content
                     if show_reasoning:
-                        console.print(f"[dim blue]{delta.reasoning_content}[/dim blue]", end="")
+                        console.print(f"[dim blue]{escape(delta.reasoning_content)}[/dim blue]", end="")
 
                 # Handle regular content
                 if hasattr(delta, "content") and delta.content:
                     full_content += delta.content
-                    console.print(delta.content, end="")
+                    console.print(delta.content, end="", markup=False)
 
         console.print("\n")  # New line after streaming
 

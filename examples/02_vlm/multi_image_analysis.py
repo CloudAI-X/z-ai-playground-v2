@@ -10,9 +10,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parents[2]))
 
 from rich.console import Console
+from rich.markdown import Markdown
 from rich.panel import Panel
 
-from config import Models, SAMPLE_IMAGES
+from config import Models, get_multi_images
 from utils.client import get_client, print_error
 
 console = Console()
@@ -34,7 +35,7 @@ def run(image_urls: list = None, prompt: str = None):
     ))
 
     # Use sample images if not provided
-    image_urls = image_urls or SAMPLE_IMAGES[:2]
+    image_urls = image_urls or get_multi_images()
     prompt = prompt or "Compare these images. What are the similarities and differences?"
 
     console.print(f"\n[bold]Analyzing {len(image_urls)} images[/bold]")
@@ -85,13 +86,20 @@ def run(image_urls: list = None, prompt: str = None):
 
                 if hasattr(delta, "content") and delta.content:
                     result += delta.content
-                    console.print(delta.content, end="")
+                    console.print(delta.content, end="", markup=False)
 
         console.print("\n")
 
+        if result:
+            console.print(Panel(
+                Markdown(result),
+                title="Analysis (Rendered)",
+                border_style="green"
+            ))
+
         if reasoning:
             console.print(Panel(
-                reasoning[:500] + "..." if len(reasoning) > 500 else reasoning,
+                Markdown(reasoning),
                 title="Model Reasoning",
                 border_style="blue"
             ))
@@ -112,7 +120,7 @@ def demo_product_comparison():
     ))
 
     # Use sample images as stand-ins
-    image_urls = SAMPLE_IMAGES[:2]
+    image_urls = get_multi_images()
 
     prompts = [
         "Which of these products looks more premium? Explain your reasoning.",
@@ -138,7 +146,7 @@ def demo_sequential_analysis():
     client = get_client()
     messages = []
 
-    for i, url in enumerate(SAMPLE_IMAGES[:2], 1):
+    for i, url in enumerate(get_multi_images(), 1):
         console.print(f"\n[bold]Image {i}:[/bold]")
 
         messages.append({
@@ -158,7 +166,7 @@ def demo_sequential_analysis():
         content = response.choices[0].message.content
         messages.append({"role": "assistant", "content": content})
 
-        console.print(Panel(content, title=f"Description {i}", border_style="green"))
+        console.print(Panel(Markdown(content), title=f"Description {i}", border_style="green"))
 
     # Final comparison using context
     messages.append({
@@ -173,7 +181,7 @@ def demo_sequential_analysis():
     )
 
     console.print(Panel(
-        response.choices[0].message.content,
+        Markdown(response.choices[0].message.content),
         title="Comparison (with context)",
         border_style="cyan"
     ))

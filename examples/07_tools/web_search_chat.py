@@ -69,7 +69,7 @@ def run(query: str = None, stream: bool = True):
                     delta = chunk.choices[0].delta
                     if hasattr(delta, "content") and delta.content:
                         result += delta.content
-                        console.print(delta.content, end="")
+                        console.print(delta.content, end="", markup=False)
 
             console.print("\n")
 

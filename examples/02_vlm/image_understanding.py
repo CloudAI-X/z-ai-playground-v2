@@ -10,10 +10,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parents[2]))
 
 from rich.console import Console
+from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.prompt import Prompt
 
-from config import Models, SAMPLE_IMAGES, TEST_PROMPTS
+from config import Models, get_sample_images, TEST_PROMPTS
 from utils.client import get_client, print_error
 
 console = Console()
@@ -36,7 +37,7 @@ def run(image_url: str = None, prompt: str = None, stream: bool = True):
     ))
 
     # Use defaults if not provided
-    image_url = image_url or SAMPLE_IMAGES[0]
+    image_url = image_url or get_sample_images()[0]
     prompt = prompt or TEST_PROMPTS["vision"]
 
     console.print(f"\n[bold]Image URL:[/bold] {image_url[:80]}...")
@@ -82,13 +83,21 @@ def run(image_url: str = None, prompt: str = None, stream: bool = True):
 
                     if hasattr(delta, "content") and delta.content:
                         content += delta.content
-                        console.print(delta.content, end="")
+                        console.print(delta.content, end="", markup=False)
 
             console.print("\n")
 
+            # Render the full response as Markdown
+            if content:
+                console.print(Panel(
+                    Markdown(content),
+                    title="Analysis (Rendered)",
+                    border_style="green"
+                ))
+
             if reasoning:
                 console.print(Panel(
-                    reasoning[:500] + "..." if len(reasoning) > 500 else reasoning,
+                    Markdown(reasoning),
                     title="Model Reasoning",
                     border_style="blue"
                 ))
@@ -103,7 +112,7 @@ def run(image_url: str = None, prompt: str = None, stream: bool = True):
             )
 
             content = response.choices[0].message.content
-            console.print(Panel(content, title="Analysis", border_style="green"))
+            console.print(Panel(Markdown(content), title="Analysis", border_style="green"))
 
             return {"content": content}
 
@@ -120,7 +129,7 @@ def analyze_multiple_aspects(image_url: str = None):
         border_style="cyan"
     ))
 
-    image_url = image_url or SAMPLE_IMAGES[0]
+    image_url = image_url or get_sample_images()[0]
 
     aspects = [
         ("Description", "Describe this image in detail."),

@@ -10,6 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parents[2]))
 
 from rich.console import Console
+from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.prompt import Prompt
 from rich.table import Table
@@ -116,7 +117,7 @@ def run():
             response = conv.chat(message)
 
             console.print(Panel(
-                response,
+                Markdown(response),
                 title=f"AI Response (Turn {i})",
                 border_style="cyan"
             ))
@@ -169,7 +170,7 @@ def interactive():
                 continue
 
             response = conv.chat(user_input)
-            console.print(Panel(response, title="AI", border_style="cyan"))
+            console.print(Panel(Markdown(response), title="AI", border_style="cyan"))
 
         except KeyboardInterrupt:
             console.print("\n[dim]Interrupted. Goodbye![/dim]")

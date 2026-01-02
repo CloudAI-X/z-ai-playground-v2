@@ -16,6 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parents[2]))
 
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 from rich.markdown import Markdown
 
@@ -107,13 +108,13 @@ def demo_basic_thinking():
 
             if hasattr(delta, "reasoning_content") and delta.reasoning_content:
                 reasoning += delta.reasoning_content
-                console.print(f"[dim italic]{delta.reasoning_content}[/dim italic]", end="")
+                console.print(f"[dim italic]{escape(delta.reasoning_content)}[/dim italic]", end="")
 
             if hasattr(delta, "content") and delta.content:
                 content += delta.content
 
     console.print("\n")
-    console.print(Panel(content, title="Final Answer", border_style="green"))
+    console.print(Panel(Markdown(content), title="Final Answer", border_style="green"))
 
     return {"reasoning": reasoning, "content": content}
 
@@ -151,72 +152,99 @@ def demo_interleaved_thinking():
 
     console.print(f"\n[bold]Request:[/bold] {prompt}\n")
 
-    # First call - model may call the tool
-    response = client.create_chat(
-        messages=[{"role": "user", "content": prompt}],
-        model=Models.LLM,
-        stream=True,
-        tools=tools,
-        thinking={"type": "enabled", "clear_thinking": False}
-    )
+    messages = [{"role": "user", "content": prompt}]
+    iteration = 0
+    max_iterations = 10
 
-    reasoning = ""
-    content = ""
-    tool_calls = []
+    while iteration < max_iterations:
+        iteration += 1
 
-    for chunk in response:
-        if chunk.choices and chunk.choices[0].delta:
-            delta = chunk.choices[0].delta
+        response = client.create_chat(
+            messages=messages,
+            model=Models.LLM,
+            stream=True,
+            tools=tools,
+            thinking={"type": "enabled", "clear_thinking": False}
+        )
 
-            if hasattr(delta, "reasoning_content") and delta.reasoning_content:
-                reasoning += delta.reasoning_content
+        reasoning = ""
+        content = ""
+        tool_calls = []
 
-            if hasattr(delta, "content") and delta.content:
-                content += delta.content
+        for chunk in response:
+            if chunk.choices and chunk.choices[0].delta:
+                delta = chunk.choices[0].delta
 
-            if hasattr(delta, "tool_calls") and delta.tool_calls:
-                for tc in delta.tool_calls:
-                    if tc.index >= len(tool_calls):
-                        tool_calls.append({
-                            "id": tc.id,
-                            "function": {"name": "", "arguments": ""}
-                        })
-                    if tc.function.name:
-                        tool_calls[tc.index]["function"]["name"] = tc.function.name
-                    if tc.function.arguments:
-                        tool_calls[tc.index]["function"]["arguments"] += tc.function.arguments
+                if hasattr(delta, "reasoning_content") and delta.reasoning_content:
+                    reasoning += delta.reasoning_content
 
-    if reasoning:
-        console.print(Panel(
-            reasoning[:500] + "..." if len(reasoning) > 500 else reasoning,
-            title="Model Reasoning",
-            border_style="blue"
-        ))
+                if hasattr(delta, "content") and delta.content:
+                    content += delta.content
 
-    if tool_calls:
+                if hasattr(delta, "tool_calls") and delta.tool_calls:
+                    for tc in delta.tool_calls:
+                        if tc.index >= len(tool_calls):
+                            tool_calls.append({
+                                "id": tc.id,
+                                "function": {"name": "", "arguments": ""}
+                            })
+                        if tc.function.name:
+                            tool_calls[tc.index]["function"]["name"] = tc.function.name
+                        if tc.function.arguments:
+                            tool_calls[tc.index]["function"]["arguments"] += tc.function.arguments
+
+        if reasoning:
+            console.print(Panel(
+                reasoning[:500] + "..." if len(reasoning) > 500 else reasoning,
+                title=f"Model Reasoning (Step {iteration})",
+                border_style="blue"
+            ))
+
+        if not tool_calls:
+            # No more tool calls, we have the final response
+            if content:
+                console.print(Panel(Markdown(content), title="Final Response", border_style="green"))
+            break
+
         console.print(Panel(
             json.dumps(tool_calls, indent=2),
-            title="Tool Calls Requested",
+            title=f"Tool Calls (Step {iteration})",
             border_style="yellow"
         ))
 
-        # Simulate tool execution
+        # Build assistant message with tool calls
+        assistant_msg = {"role": "assistant", "content": content or None, "tool_calls": []}
+        tool_results = []
+
         for tc in tool_calls:
+            assistant_msg["tool_calls"].append({
+                "id": tc["id"],
+                "type": "function",
+                "function": tc["function"]
+            })
+
+            # Execute tool and collect result
             if tc["function"]["name"] == "calculate":
                 try:
                     args = json.loads(tc["function"]["arguments"])
-                except json.JSONDecodeError as e:
-                    console.print(f"[red]JSON parse error: {e}[/red]")
-                    continue
-                expr = args.get("expression", "")
-                try:
+                    expr = args.get("expression", "")
                     result = safe_calculate(expr)
                     console.print(f"[green]Calculated: {expr} = {result}[/green]")
-                except ValueError as e:
-                    console.print(f"[red]Calculation error: {e}[/red]")
+                    tool_results.append({
+                        "role": "tool",
+                        "tool_call_id": tc["id"],
+                        "content": str(result)
+                    })
+                except (json.JSONDecodeError, ValueError) as e:
+                    console.print(f"[red]Error: {e}[/red]")
+                    tool_results.append({
+                        "role": "tool",
+                        "tool_call_id": tc["id"],
+                        "content": f"Error: {e}"
+                    })
 
-    if content:
-        console.print(Panel(content, title="Response", border_style="green"))
+        messages.append(assistant_msg)
+        messages.extend(tool_results)
 
 
 def demo_turn_level_thinking():
@@ -243,18 +271,35 @@ def demo_turn_level_thinking():
 
         messages.append({"role": "user", "content": turn["message"]})
 
+        # Use streaming to show progress
         response = client.create_chat(
             messages=messages,
             model=Models.LLM,
+            stream=True,
             thinking={"type": "enabled" if turn["thinking"] else "disabled"}
         )
 
-        reply = response.choices[0].message.content
+        reply = ""
+        reasoning = ""
+
+        for chunk in response:
+            if chunk.choices and chunk.choices[0].delta:
+                delta = chunk.choices[0].delta
+
+                if hasattr(delta, "reasoning_content") and delta.reasoning_content:
+                    reasoning += delta.reasoning_content
+                    if turn["thinking"]:
+                        console.print(f"[dim italic]{escape(delta.reasoning_content)}[/dim italic]", end="")
+
+                if hasattr(delta, "content") and delta.content:
+                    reply += delta.content
+
+        if turn["thinking"] and reasoning:
+            console.print()  # New line after reasoning
+
         messages.append({"role": "assistant", "content": reply})
 
-        # Truncate long responses for display
-        display_reply = reply[:300] + "..." if len(reply) > 300 else reply
-        console.print(Panel(display_reply, title="AI", border_style="cyan"))
+        console.print(Panel(Markdown(reply), title="AI", border_style="cyan"))
 
 
 def run():

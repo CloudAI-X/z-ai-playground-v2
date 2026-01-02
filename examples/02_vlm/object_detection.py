@@ -14,7 +14,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from config import Models, SAMPLE_IMAGES
+from config import Models, get_sample_images, load_image_as_data_url, SAMPLE_IMAGE_PATHS
 from utils.client import get_client, print_error
 
 console = Console()
@@ -35,7 +35,7 @@ def run(image_url: str = None, target_objects: str = None):
         border_style="cyan"
     ))
 
-    image_url = image_url or SAMPLE_IMAGES[1]  # Use image with objects
+    image_url = image_url or load_image_as_data_url(SAMPLE_IMAGE_PATHS["detection"])
     target = target_objects or "all visible objects"
 
     console.print(f"\n[bold]Image URL:[/bold] {image_url[:60]}...")
@@ -134,7 +134,7 @@ def run_with_grounding(image_url: str = None, target: str = None):
         border_style="cyan"
     ))
 
-    image_url = image_url or SAMPLE_IMAGES[1]
+    image_url = image_url or load_image_as_data_url(SAMPLE_IMAGE_PATHS["detection"])
     target = target or "the most prominent object"
 
     console.print(f"\n[bold]Target:[/bold] {target}\n")
@@ -167,7 +167,7 @@ Explain briefly why you identified this as the target."""
                 delta = chunk.choices[0].delta
                 if hasattr(delta, "content") and delta.content:
                     result += delta.content
-                    console.print(delta.content, end="")
+                    console.print(delta.content, end="", markup=False)
 
         console.print("\n")
         return result
@@ -186,7 +186,7 @@ def demo_counting():
     ))
 
     client = get_client()
-    image_url = SAMPLE_IMAGES[0]
+    image_url = load_image_as_data_url(SAMPLE_IMAGE_PATHS["detection"])
 
     prompt = """Count all distinct objects in this image.
 Return a JSON object with:
