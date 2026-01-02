@@ -15,7 +15,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.syntax import Syntax
 
-from config import API_KEY, ENDPOINTS, Models, TEST_PROMPTS
+from config import API_KEY, BASE_URL, ENDPOINTS, Models, TEST_PROMPTS
 
 console = Console()
 
@@ -44,7 +44,7 @@ def run(prompt: str = None, size: str = "1024x1024"):
     console.print(f"[bold]Size:[/bold] {size}\n")
 
     # Prepare request
-    url = ENDPOINTS["image_generation"]
+    url = BASE_URL + ENDPOINTS["images"]
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
@@ -112,7 +112,7 @@ def demo_various_sizes():
     sizes = ["1024x1024", "1280x720", "768x1344"]
     prompt = "A beautiful sunset over mountains"
 
-    url = ENDPOINTS["image_generation"]
+    url = BASE_URL + ENDPOINTS["images"]
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
@@ -156,10 +156,11 @@ def show_curl_examples():
         border_style="cyan"
     ))
 
+    full_url = BASE_URL + ENDPOINTS["images"]
     examples = [
         {
             "name": "Basic Image Generation",
-            "curl": f'''curl -X POST "{ENDPOINTS["image_generation"]}" \\
+            "curl": f'''curl -X POST "{full_url}" \\
   -H "Authorization: Bearer $Z_AI_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{{
@@ -171,7 +172,7 @@ def show_curl_examples():
         },
         {
             "name": "HD Landscape Image",
-            "curl": f'''curl -X POST "{ENDPOINTS["image_generation"]}" \\
+            "curl": f'''curl -X POST "{full_url}" \\
   -H "Authorization: Bearer $Z_AI_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{{
@@ -183,7 +184,7 @@ def show_curl_examples():
         },
         {
             "name": "Portrait Image",
-            "curl": f'''curl -X POST "{ENDPOINTS["image_generation"]}" \\
+            "curl": f'''curl -X POST "{full_url}" \\
   -H "Authorization: Bearer $Z_AI_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{{

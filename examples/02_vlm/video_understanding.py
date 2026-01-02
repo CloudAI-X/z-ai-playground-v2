@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parents[2]))
 
 from rich.console import Console
+from rich.markdown import Markdown
 from rich.panel import Panel
 
 from config import Models
@@ -19,7 +20,9 @@ from utils.client import get_client, print_error
 console = Console()
 
 # Sample video URL (public video for demo)
-SAMPLE_VIDEO_URL = "https://cloud.video.taobao.com/play/u/null/p/1/e/6/t/1/d/ud/50782830612.mp4"
+# Note: Video analysis requires HTTP URLs - local files/base64 NOT supported
+# Using Google's public sample video (Chromecast ad ~15s)
+SAMPLE_VIDEO_URL = "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
 
 
 def run(video_url: str = None, prompt: str = None):
@@ -82,13 +85,22 @@ def run(video_url: str = None, prompt: str = None):
 
                 if hasattr(delta, "content") and delta.content:
                     content += delta.content
-                    console.print(delta.content, end="")
+                    console.print(delta.content, end="", markup=False)
 
         console.print("\n")
 
+        # Render full response as Markdown
+        if content:
+            console.print(Panel(
+                Markdown(content),
+                title="Analysis",
+                border_style="green"
+            ))
+
+        # Render full reasoning as Markdown (not truncated)
         if reasoning:
             console.print(Panel(
-                reasoning[:500] + "..." if len(reasoning) > 500 else reasoning,
+                Markdown(reasoning),
                 title="Model Reasoning",
                 border_style="blue"
             ))
@@ -141,7 +153,7 @@ def demo_video_questions():
             )
 
             console.print(Panel(
-                response.choices[0].message.content,
+                Markdown(response.choices[0].message.content),
                 title="Answer",
                 border_style="green"
             ))

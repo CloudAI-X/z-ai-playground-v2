@@ -16,7 +16,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from config import Models, SAMPLE_IMAGES
+from config import Models, SAMPLE_VIDEO_FRAMES
 from utils.client import get_client, print_error
 
 console = Console()
@@ -54,9 +54,9 @@ def run(
         border_style="cyan"
     ))
 
-    # Use sample images if not provided
-    start_image_url = start_image_url or SAMPLE_IMAGES[0]
-    end_image_url = end_image_url or (SAMPLE_IMAGES[1] if len(SAMPLE_IMAGES) > 1 else SAMPLE_IMAGES[0])
+    # Use sample frame URLs if not provided (video gen requires HTTP URLs)
+    start_image_url = start_image_url or SAMPLE_VIDEO_FRAMES["first"]
+    end_image_url = end_image_url or SAMPLE_VIDEO_FRAMES["last"]
     prompt = prompt or "Smooth transition between the two frames with natural motion"
 
     console.print(f"\n[bold]Start Frame:[/bold] {start_image_url[:50]}...")
@@ -148,8 +148,8 @@ def demo_transition_effects():
         border_style="cyan"
     ))
 
-    start_url = SAMPLE_IMAGES[0]
-    end_url = SAMPLE_IMAGES[1] if len(SAMPLE_IMAGES) > 1 else SAMPLE_IMAGES[0]
+    start_url = SAMPLE_VIDEO_FRAMES["first"]
+    end_url = SAMPLE_VIDEO_FRAMES["last"]
 
     transition_prompts = [
         "Smooth morph transition with flowing movement",
@@ -181,17 +181,12 @@ def demo_story_sequence():
         border_style="cyan"
     ))
 
-    console.print("\n[yellow]Note: This demo requires at least 2 sample images.[/yellow]")
-    console.print("[dim]Using available sample images...[/dim]\n")
+    console.print("[dim]Using sample frame URLs...[/dim]\n")
 
-    if len(SAMPLE_IMAGES) < 2:
-        console.print("[red]Need at least 2 sample images for this demo[/red]")
-        return []
-
-    # Create a circular story: img1 -> img2 -> img1 (if only 2 images)
+    # Create a circular story: frame1 -> frame2 -> frame1
     sequences = [
-        (SAMPLE_IMAGES[0], SAMPLE_IMAGES[1], "Scene transition with natural movement"),
-        (SAMPLE_IMAGES[1], SAMPLE_IMAGES[0], "Return to the beginning, completing the cycle"),
+        (SAMPLE_VIDEO_FRAMES["first"], SAMPLE_VIDEO_FRAMES["last"], "Scene transition with natural movement"),
+        (SAMPLE_VIDEO_FRAMES["last"], SAMPLE_VIDEO_FRAMES["first"], "Return to the beginning, completing the cycle"),
     ]
 
     results = []
