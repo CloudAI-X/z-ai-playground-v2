@@ -5,7 +5,6 @@ Centralized configuration for all API settings and model constants.
 
 import os
 import base64
-import functools
 from pathlib import Path
 from dotenv import load_dotenv
 
