@@ -14,6 +14,7 @@ Complete examples for Z.AI's API including GLM-5 chat, vision, image/video gener
 | **Video Gen** | CogVideoX-3  | Text-to-video, image-to-video, start/end frame        |
 | **Audio**     | GLM-ASR-2512 | Transcription, streaming transcription                |
 | **Tools**     | GLM-5        | Function calling, web search, structured output       |
+| **Agents**    | GLM-5        | Multi-function agent, local agent with real tools     |
 
 ## GLM-5 Best Practices Applied
 
@@ -192,118 +193,6 @@ echo 'Z_AI_API_KEY=your-api-key-here' > .env
 ### Video Analysis Fails
 
 Video understanding requires a **public HTTP URL**. Local files don't work for video analysis. The default example uses a built-in working URL.
-
-## Using GLM-5 with Claude Code
-
-This project was built using **GLM-5 inside Claude Code** via the [Z.AI-GLM-5-Coding Plan](https://z.ai/subscribe).
-
-> **Why GLM Coding Plan?** Get 3× the usage at a fraction of the cost. Code faster, debug smarter, and manage workflows seamlessly with more tokens and rock-solid reliability.
-
-### Step 1: Install Claude Code
-
-**Prerequisites:** [Node.js 18 or newer](https://nodejs.org/en/download/)
-
-```bash
-# Install Claude Code
-npm install -g @anthropic-ai/claude-code
-
-# Navigate to your project
-cd your-awesome-project
-
-# Start Claude Code
-claude
-```
-
-> **Note:** If you encounter permission issues, use `sudo` (macOS/Linux) or run as administrator (Windows).
-
-### Step 2: Configure GLM Coding Plan
-
-1. **Get API Key**
-   - Register/Login at [Z.AI Open Platform](https://z.ai/model-api)
-   - Create an API Key at [API Keys](https://z.ai/manage-apikey/apikey-list)
-   - Copy your API Key
-
-2. **Configure Environment** (choose one method):
-
-#### Option A: Automated Setup (Recommended)
-
-```bash
-# Run the Coding Tool Helper
-npx @z_ai/coding-helper
-```
-
-#### Option B: Automated Script (macOS/Linux)
-
-```bash
-curl -O "https://cdn.bigmodel.cn/install/claude_code_zai_env.sh" && bash ./claude_code_zai_env.sh
-```
-
-#### Option C: Manual Configuration
-
-Edit `~/.claude/settings.json`:
-
-```json
-{
-  "env": {
-    "ANTHROPIC_AUTH_TOKEN": "your_zai_api_key",
-    "ANTHROPIC_BASE_URL": "https://api.z.ai/api/anthropic",
-    "API_TIMEOUT_MS": "3000000"
-  }
-}
-```
-
-**Windows (Cmd):**
-
-```cmd
-setx ANTHROPIC_AUTH_TOKEN your_zai_api_key
-setx ANTHROPIC_BASE_URL https://api.z.ai/api/anthropic
-```
-
-**Windows (PowerShell):**
-
-```powershell
-[System.Environment]::SetEnvironmentVariable('ANTHROPIC_AUTH_TOKEN', 'your_zai_api_key', 'User')
-[System.Environment]::SetEnvironmentVariable('ANTHROPIC_BASE_URL', 'https://api.z.ai/api/anthropic', 'User')
-```
-
-### Step 3: Start Using Claude Code
-
-```bash
-cd your-project-directory
-claude
-```
-
-Grant file access permission when prompted, and you're ready to code!
-
-### Model Mapping
-
-| Claude Code Model | GLM Model   |
-| ----------------- | ----------- |
-| Opus              | GLM-5       |
-| Sonnet            | GLM-5       |
-| Haiku             | GLM-4.5-Air |
-
-To customize model mapping, add to `~/.claude/settings.json`:
-
-```json
-{
-  "env": {
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-4.5-air",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-5",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-5"
-  }
-}
-```
-
-Check current model with `/status` command in Claude Code.
-
-### Why Z.AI-GLM-5-Coding Plan?
-
-- **3× more usage** at a fraction of the cost
-- **128K output tokens** for large codebases
-- **200K context window** for complex projects
-- **Deep reasoning** with thinking mode
-- **Rock-solid reliability**
 
 ## Credits
 
