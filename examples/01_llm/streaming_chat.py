@@ -52,7 +52,7 @@ def run(custom_prompt: str = None, show_reasoning: bool = True):
             ],
             model=Models.LLM,
             stream=True,
-            temperature=Defaults.TEMPERATURE,  # GLM-4.7 best practice
+            temperature=Defaults.TEMPERATURE,  # GLM-5 best practice
             thinking={"type": "enabled"}  # Enable thinking to show reasoning
         )
 

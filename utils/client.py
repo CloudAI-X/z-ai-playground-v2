@@ -76,24 +76,24 @@ class ZaiClientWrapper:
 
         Args:
             messages: List of message dicts with 'role' and 'content'
-            model: Model to use (default: GLM-4.7)
+            model: Model to use (default: GLM-5)
             stream: Enable streaming response
             thinking: Thinking mode config (e.g., {"type": "enabled"})
             tools: List of tool definitions for function calling
             tool_stream: Enable streaming tool call arguments (requires stream=True)
             temperature: Sampling temperature (0.0-2.0, default: 1.0). Do NOT use with top_p.
-            max_tokens: Maximum output tokens (up to 128K for GLM-4.7)
+            max_tokens: Maximum output tokens (up to 128K for GLM-5)
             **kwargs: Additional parameters passed to the API
 
         Note:
-            GLM-4.7 Best Practice: Use either 'temperature' OR 'top_p', never both.
-            GLM-4.7 supports 128K max output tokens and 200K context window.
+            GLM-5 Best Practice: Use either 'temperature' OR 'top_p', never both.
+            GLM-5 supports 128K max output tokens and 200K context window.
         """
         params = {
             "model": model,
             "messages": messages,
             "stream": stream,
-            "temperature": temperature,  # GLM-4.7 default: 1.0
+            "temperature": temperature,  # GLM-5 default: 1.0
         }
 
         if max_tokens is not None:
@@ -105,7 +105,7 @@ class ZaiClientWrapper:
         if tools is not None:
             params["tools"] = tools
             params["tool_choice"] = kwargs.pop("tool_choice", "auto")
-            # Enable tool_stream for streaming tool parameters (GLM-4.7 feature)
+            # Enable tool_stream for streaming tool parameters (GLM-5 feature)
             if stream and tool_stream:
                 params["tool_stream"] = True
 
@@ -126,7 +126,7 @@ class ZaiClientWrapper:
         """
         Create a streaming chat with tool support and proper argument concatenation.
 
-        This implements the GLM-4.7 best practice pattern for streaming tool calls,
+        This implements the GLM-5 best practice pattern for streaming tool calls,
         where tool arguments are concatenated across chunks.
 
         Args:
@@ -188,7 +188,7 @@ class ZaiClientWrapper:
                             },
                         }
                     else:
-                        # Concatenate arguments (key GLM-4.7 pattern)
+                        # Concatenate arguments (key GLM-5 pattern)
                         if tc.function.arguments:
                             tool_calls[idx]["function"]["arguments"] += tc.function.arguments
 

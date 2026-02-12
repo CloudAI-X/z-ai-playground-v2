@@ -57,7 +57,7 @@ def run(prompt: str = None, stream: bool = False):
         ],
         "stream": stream,
         "thinking": {"type": "enabled"},
-        "temperature": Defaults.TEMPERATURE,  # GLM-4.7 best practice
+        "temperature": Defaults.TEMPERATURE,  # GLM-5 best practice
         "max_tokens": Defaults.MAX_TOKENS
     }
 
@@ -259,7 +259,7 @@ def demo_streaming_tool_calls():
     """Demo: HTTP request with streaming tool calls (tool_stream=True)."""
     console.print(Panel.fit(
         "[bold cyan]Streaming Tool Calls HTTP Demo[/bold cyan]\n"
-        "GLM-4.7 tool_stream=True via direct API",
+        "GLM-5 tool_stream=True via direct API",
         border_style="cyan"
     ))
 
@@ -290,7 +290,7 @@ def demo_streaming_tool_calls():
         "tools": tools,
         "tool_choice": "auto",
         "stream": True,
-        "tool_stream": True,  # GLM-4.7: Enable streaming tool parameters
+        "tool_stream": True,  # GLM-5: Enable streaming tool parameters
         "temperature": Defaults.TEMPERATURE
     }
 
@@ -304,7 +304,7 @@ def demo_streaming_tool_calls():
 
         console.print("\n[bold]Streaming tool arguments:[/bold]")
 
-        # Concatenate tool arguments across chunks (GLM-4.7 pattern)
+        # Concatenate tool arguments across chunks (GLM-5 pattern)
         tool_calls = {}
 
         for line in response.iter_lines():

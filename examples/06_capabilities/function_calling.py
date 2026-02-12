@@ -1,6 +1,6 @@
 """
 Function Calling Example
-Demonstrates GLM-4.7's ability to call functions and use tools.
+Demonstrates GLM-5's ability to call functions and use tools.
 """
 
 import sys
@@ -223,7 +223,7 @@ def execute_function(name: str, arguments: dict) -> str:
 
 def run(user_query: str = None):
     """
-    Demonstrate function calling with GLM-4.7.
+    Demonstrate function calling with GLM-5.
 
     Args:
         user_query: User's question that may require tool use
@@ -262,7 +262,7 @@ def run(user_query: str = None):
             messages=messages,
             tools=TOOLS,
             tool_choice="auto",
-            temperature=Defaults.TEMPERATURE  # GLM-4.7 best practice
+            temperature=Defaults.TEMPERATURE  # GLM-5 best practice
         )
 
         assistant_message = response.choices[0].message
@@ -441,13 +441,13 @@ def demo_streaming_tool_calls():
     """
     Demo: Streaming function calling with tool_stream=True.
 
-    This demonstrates the GLM-4.7 best practice of streaming tool call
+    This demonstrates the GLM-5 best practice of streaming tool call
     parameters and concatenating arguments across chunks.
     """
     console.print(Panel.fit(
         "[bold cyan]Streaming Tool Calls Demo[/bold cyan]\n"
         f"Model: {Models.LLM}\n"
-        "GLM-4.7 tool_stream=True for real-time tool parameters",
+        "GLM-5 tool_stream=True for real-time tool parameters",
         border_style="cyan"
     ))
 
@@ -460,13 +460,13 @@ def demo_streaming_tool_calls():
 
         console.print("[dim]Streaming with tool_stream=True...[/dim]\n")
 
-        # Use streaming with tool_stream=True (GLM-4.7 feature)
+        # Use streaming with tool_stream=True (GLM-5 feature)
         response = client.create_chat(
             messages=messages,
             tools=TOOLS,
             tool_choice="auto",
             stream=True,
-            tool_stream=True,  # GLM-4.7: Enable streaming tool parameters
+            tool_stream=True,  # GLM-5: Enable streaming tool parameters
             temperature=Defaults.TEMPERATURE
         )
 
@@ -504,7 +504,7 @@ def demo_streaming_tool_calls():
                         if tool_call.function.name:
                             detected_tools.append(tool_call.function.name)
                     else:
-                        # Concatenate arguments (key pattern from GLM-4.7 docs)
+                        # Concatenate arguments (key pattern from GLM-5 docs)
                         if tool_call.function.arguments:
                             final_tool_calls[idx]["function"]["arguments"] += tool_call.function.arguments
 

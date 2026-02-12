@@ -16,7 +16,7 @@ MENU = """
 [bold cyan]╔══════════════════════════════════════════════════════════════════╗[/bold cyan]
 [bold cyan]║[/bold cyan]                    [bold white]Z.AI API Explorer[/bold white]                           [bold cyan]║[/bold cyan]
 [bold cyan]╠══════════════════════════════════════════════════════════════════╣[/bold cyan]
-[bold cyan]║[/bold cyan]  [bold yellow]LANGUAGE MODELS (GLM-4.7)[/bold yellow]                                      [bold cyan]║[/bold cyan]
+[bold cyan]║[/bold cyan]  [bold yellow]LANGUAGE MODELS (GLM-5)[/bold yellow]                                      [bold cyan]║[/bold cyan]
 [bold cyan]║[/bold cyan]    [cyan]1.[/cyan] Basic Chat                                                 [bold cyan]║[/bold cyan]
 [bold cyan]║[/bold cyan]    [cyan]2.[/cyan] Streaming Chat                                             [bold cyan]║[/bold cyan]
 [bold cyan]║[/bold cyan]    [cyan]3.[/cyan] Multi-turn Conversation                                    [bold cyan]║[/bold cyan]
@@ -117,7 +117,7 @@ def show_info():
     table.add_column("Model", style="green")
     table.add_column("Use Case", style="white")
 
-    table.add_row("Language", "GLM-4.7", "Chat, reasoning, code generation")
+    table.add_row("Language", "GLM-5", "Chat, reasoning, code generation")
     table.add_row("Vision", "GLM-4.6V", "Image/video understanding")
     table.add_row("Image Gen", "CogView-4", "Text-to-image ($0.01/image)")
     table.add_row("Video Gen", "CogVideoX-3", "Text/image-to-video ($0.2/video)")

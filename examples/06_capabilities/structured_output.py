@@ -1,6 +1,6 @@
 """
 Structured Output Example
-Demonstrates GLM-4.7's ability to return structured JSON responses.
+Demonstrates GLM-5's ability to return structured JSON responses.
 """
 
 import sys
@@ -23,7 +23,7 @@ console = Console()
 
 def run(prompt: str = None, schema_type: str = "product"):
     """
-    Get structured JSON output from GLM-4.7.
+    Get structured JSON output from GLM-5.
 
     Args:
         prompt: The prompt to send

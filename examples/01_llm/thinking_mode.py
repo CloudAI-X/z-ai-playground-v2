@@ -1,6 +1,6 @@
 """
 Thinking Mode Example
-Demonstrates GLM-4.7's advanced reasoning capabilities:
+Demonstrates GLM-5's advanced reasoning capabilities:
 - Interleaved thinking (reasoning between tool calls)
 - Preserved thinking (maintaining reasoning across turns)
 - Turn-level thinking (enable/disable per turn)
@@ -77,7 +77,7 @@ def demo_basic_thinking():
     """Demonstrate basic thinking mode with reasoning output."""
     console.print(Panel.fit(
         "[bold cyan]Basic Thinking Mode[/bold cyan]\n"
-        "GLM-4.7 shows its reasoning process before answering.",
+        "GLM-5 shows its reasoning process before answering.",
         border_style="cyan"
     ))
 
@@ -305,7 +305,7 @@ def demo_turn_level_thinking():
 def run():
     """Run all thinking mode demonstrations."""
     console.print(Panel.fit(
-        "[bold magenta]GLM-4.7 Thinking Mode Demonstrations[/bold magenta]\n"
+        "[bold magenta]GLM-5 Thinking Mode Demonstrations[/bold magenta]\n"
         "Exploring deep reasoning capabilities",
         border_style="magenta"
     ))

@@ -1,6 +1,6 @@
 """
 Basic Chat Example
-Demonstrates simple single-turn chat completion with GLM-4.7.
+Demonstrates simple single-turn chat completion with GLM-5.
 """
 
 import sys
@@ -49,7 +49,7 @@ def run(custom_prompt: str = None):
                 {"role": "user", "content": prompt}
             ],
             model=Models.LLM,
-            temperature=Defaults.TEMPERATURE,  # GLM-4.7 best practice
+            temperature=Defaults.TEMPERATURE,  # GLM-5 best practice
             thinking={"type": "disabled"}  # Disable thinking for basic example
         )
 

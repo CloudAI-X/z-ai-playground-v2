@@ -19,7 +19,7 @@ CODING_BASE_URL = "https://api.z.ai/api/coding/paas/v4"
 # Model Constants - Target Models per User Request
 class Models:
     # Language Models
-    LLM = "glm-4.7"
+    LLM = "glm-5"
     LLM_FLASH = "glm-4.5-flash"
     LLM_AIR = "glm-4.5-air"
 
@@ -37,10 +37,10 @@ class Models:
     AUDIO_ASR = "glm-asr-2512"
 
 
-# GLM-4.7 Best Practice Defaults
+# GLM-5 Best Practice Defaults
 class Defaults:
     """
-    GLM-4.7 recommended parameter defaults.
+    GLM-5 recommended parameter defaults.
 
     Best Practice: Use either temperature OR top_p, never both simultaneously.
     - temperature: Controls randomness (higher = more creative)
@@ -53,10 +53,10 @@ class Defaults:
     # Token Limits
     MAX_TOKENS = 4096        # Reasonable default for most responses
     MAX_TOKENS_LONG = 8192   # For longer responses
-    MAX_TOKENS_MAX = 128000  # GLM-4.7 maximum output
+    MAX_TOKENS_MAX = 128000  # GLM-5 maximum output
 
     # Context Window
-    CONTEXT_WINDOW = 200000  # 200K context for GLM-4.7
+    CONTEXT_WINDOW = 200000  # 200K context for GLM-5
 
     # Streaming
     TOOL_STREAM = True       # Enable streaming tool call parameters

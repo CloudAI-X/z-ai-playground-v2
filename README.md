@@ -1,21 +1,21 @@
 # Z.AI API Playground
 
-> **Powered by [Z.AI-GLM-4.7-Coding Plan](https://z.ai/subscribe)**
+> **Powered by [Z.AI-GLM-5-Coding Plan](https://z.ai/subscribe)**
 
-Complete examples for Z.AI's API including GLM-4.7 chat, vision, image/video generation, audio transcription, and more.
+Complete examples for Z.AI's API including GLM-5 chat, vision, image/video generation, audio transcription, and more.
 
 ## Features
 
-| Category | Model | Examples |
-|----------|-------|----------|
-| **Chat** | GLM-4.7 | Basic, streaming, multi-turn, thinking mode |
-| **Vision** | GLM-4.6V | Image understanding, object detection, video analysis |
-| **Image Gen** | CogView-4 | Text-to-image generation |
-| **Video Gen** | CogVideoX-3 | Text-to-video, image-to-video, start/end frame |
-| **Audio** | GLM-ASR-2512 | Transcription, streaming transcription |
-| **Tools** | GLM-4.7 | Function calling, web search, structured output |
+| Category      | Model        | Examples                                              |
+| ------------- | ------------ | ----------------------------------------------------- |
+| **Chat**      | GLM-5        | Basic, streaming, multi-turn, thinking mode           |
+| **Vision**    | GLM-4.6V     | Image understanding, object detection, video analysis |
+| **Image Gen** | CogView-4    | Text-to-image generation                              |
+| **Video Gen** | CogVideoX-3  | Text-to-video, image-to-video, start/end frame        |
+| **Audio**     | GLM-ASR-2512 | Transcription, streaming transcription                |
+| **Tools**     | GLM-5        | Function calling, web search, structured output       |
 
-## GLM-4.7 Best Practices Applied
+## GLM-5 Best Practices Applied
 
 - `temperature=1.0` - Default sampling parameter
 - `max_tokens` - Configurable up to 128K output
@@ -63,6 +63,7 @@ utils/               # Shared client utilities
 ### Before Running Vision Examples
 
 **Step 1: Generate sample images first** (one-time setup):
+
 ```bash
 uv run python generate_samples.py --images
 ```
@@ -73,12 +74,12 @@ This creates the `images/` folder with sample images used by vision examples.
 
 All vision examples work out of the box after generating samples:
 
-| Example | Command | What It Does |
-|---------|---------|--------------|
-| **Image Understanding** | `uv run python examples/02_vlm/image_understanding.py` | Analyzes a Japanese garden image |
-| **Multi-Image Analysis** | `uv run python examples/02_vlm/multi_image_analysis.py` | Compares two living room images |
-| **Object Detection** | `uv run python examples/02_vlm/object_detection.py` | Detects objects in a city street scene |
-| **Video Understanding** | `uv run python examples/02_vlm/video_understanding.py` | Analyzes a sample video (uses built-in URL) |
+| Example                  | Command                                                 | What It Does                                |
+| ------------------------ | ------------------------------------------------------- | ------------------------------------------- |
+| **Image Understanding**  | `uv run python examples/02_vlm/image_understanding.py`  | Analyzes a Japanese garden image            |
+| **Multi-Image Analysis** | `uv run python examples/02_vlm/multi_image_analysis.py` | Compares two living room images             |
+| **Object Detection**     | `uv run python examples/02_vlm/object_detection.py`     | Detects objects in a city street scene      |
+| **Video Understanding**  | `uv run python examples/02_vlm/video_understanding.py`  | Analyzes a sample video (uses built-in URL) |
 
 ### Using Your Own Images
 
@@ -101,12 +102,12 @@ uv run python examples/02_vlm/video_understanding.py -u "https://example.com/you
 
 ### Sample Files Reference
 
-| File | Used By | Auto-Generated |
-|------|---------|----------------|
-| `images/image_understanding.jpg` | image_understanding.py | Yes |
-| `images/multi_image_1.jpg` | multi_image_analysis.py | Yes |
-| `images/multi_image_2.jpg` | multi_image_analysis.py | Yes |
-| `images/object_detection.jpg` | object_detection.py | Yes |
+| File                             | Used By                 | Auto-Generated |
+| -------------------------------- | ----------------------- | -------------- |
+| `images/image_understanding.jpg` | image_understanding.py  | Yes            |
+| `images/multi_image_1.jpg`       | multi_image_analysis.py | Yes            |
+| `images/multi_image_2.jpg`       | multi_image_analysis.py | Yes            |
+| `images/object_detection.jpg`    | object_detection.py     | Yes            |
 
 ### Programmatic Usage
 
@@ -133,10 +134,10 @@ messages = [{
 
 ### Running Video Generation Examples
 
-| Example | Command | What It Does |
-|---------|---------|--------------|
-| **Text-to-Video** | `uv run python examples/04_video/text_to_video.py` | Generate video from text prompt |
-| **Image-to-Video** | `uv run python examples/04_video/image_to_video.py` | Animate a static image |
+| Example             | Command                                              | What It Does                         |
+| ------------------- | ---------------------------------------------------- | ------------------------------------ |
+| **Text-to-Video**   | `uv run python examples/04_video/text_to_video.py`   | Generate video from text prompt      |
+| **Image-to-Video**  | `uv run python examples/04_video/image_to_video.py`  | Animate a static image               |
 | **Start/End Frame** | `uv run python examples/04_video/start_end_frame.py` | Create transition between two images |
 
 > **Note:** Video generation costs $0.2 per video and takes 1-2 minutes to complete.
@@ -161,7 +162,9 @@ This launches a menu where you can select any example by number (1-22).
 ## Troubleshooting
 
 ### "No module named 'zai'" Error
+
 Always use `uv run python` instead of just `python`:
+
 ```bash
 # Wrong
 python examples/02_vlm/image_understanding.py
@@ -171,23 +174,28 @@ uv run python examples/02_vlm/image_understanding.py
 ```
 
 ### "Sample image not found" Error
+
 Generate the sample images first:
+
 ```bash
 uv run python generate_samples.py --images
 ```
 
 ### "Z_AI_API_KEY not found" Error
+
 Create a `.env` file with your API key:
+
 ```bash
 echo 'Z_AI_API_KEY=your-api-key-here' > .env
 ```
 
 ### Video Analysis Fails
+
 Video understanding requires a **public HTTP URL**. Local files don't work for video analysis. The default example uses a built-in working URL.
 
-## Using GLM-4.7 with Claude Code
+## Using GLM-5 with Claude Code
 
-This project was built using **GLM-4.7 inside Claude Code** via the [Z.AI-GLM-4.7-Coding Plan](https://z.ai/subscribe).
+This project was built using **GLM-5 inside Claude Code** via the [Z.AI-GLM-5-Coding Plan](https://z.ai/subscribe).
 
 > **Why GLM Coding Plan?** Get 3× the usage at a fraction of the cost. Code faster, debug smarter, and manage workflows seamlessly with more tokens and rock-solid reliability.
 
@@ -245,12 +253,14 @@ Edit `~/.claude/settings.json`:
 ```
 
 **Windows (Cmd):**
+
 ```cmd
 setx ANTHROPIC_AUTH_TOKEN your_zai_api_key
 setx ANTHROPIC_BASE_URL https://api.z.ai/api/anthropic
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 [System.Environment]::SetEnvironmentVariable('ANTHROPIC_AUTH_TOKEN', 'your_zai_api_key', 'User')
 [System.Environment]::SetEnvironmentVariable('ANTHROPIC_BASE_URL', 'https://api.z.ai/api/anthropic', 'User')
@@ -267,11 +277,11 @@ Grant file access permission when prompted, and you're ready to code!
 
 ### Model Mapping
 
-| Claude Code Model | GLM Model |
-|-------------------|-----------|
-| Opus | GLM-4.7 |
-| Sonnet | GLM-4.7 |
-| Haiku | GLM-4.5-Air |
+| Claude Code Model | GLM Model   |
+| ----------------- | ----------- |
+| Opus              | GLM-5       |
+| Sonnet            | GLM-5       |
+| Haiku             | GLM-4.5-Air |
 
 To customize model mapping, add to `~/.claude/settings.json`:
 
@@ -279,15 +289,15 @@ To customize model mapping, add to `~/.claude/settings.json`:
 {
   "env": {
     "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-4.5-air",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-4.7",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-4.7"
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-5",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-5"
   }
 }
 ```
 
 Check current model with `/status` command in Claude Code.
 
-### Why Z.AI-GLM-4.7-Coding Plan?
+### Why Z.AI-GLM-5-Coding Plan?
 
 - **3× more usage** at a fraction of the cost
 - **128K output tokens** for large codebases
@@ -297,7 +307,7 @@ Check current model with `/status` command in Claude Code.
 
 ## Credits
 
-This project is powered by **[Z.AI-GLM-4.7-Coding Plan](https://z.ai/subscribe)** - the most cost-effective way to access GLM-4.7's advanced coding capabilities.
+This project is powered by **[Z.AI-GLM-5-Coding Plan](https://z.ai/subscribe)** - the most cost-effective way to access GLM-5's advanced coding capabilities.
 
 ## License
 

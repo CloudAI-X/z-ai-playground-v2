@@ -1,5 +1,5 @@
 """
-Language Model Examples (GLM-4.7)
+Language Model Examples (GLM-5)
 Demonstrates basic chat, streaming, multi-turn conversations, and thinking mode.
 """
 
